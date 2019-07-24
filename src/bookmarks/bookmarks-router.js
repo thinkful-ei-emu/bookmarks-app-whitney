@@ -3,19 +3,26 @@ const uuid = require('uuid/v4');
 
 const bookmarks = require('../store');
 const logger = require('../logger');
+const BookmarkService = require('../bookmarks-service');
 
 const bookmarkRouter = express.Router();
 const bodyParser = express.json();
 
 bookmarkRouter
   .route('/')
-  .get((req, res) => {
-    res.json(bookmarks);
+  .get((req, res, next) => {
+    const db = req.app.get('db');
+    BookmarkService.getAllBookmarks(db)
+      .then(bookmarks => {
+        res.json(bookmarks);
+      })
+      .catch(err => next(err));
   })
+
   .post(bodyParser, (req, res) => {
-    console.log('I am getting here');
-    const { title, url, desc, rating} = req.body;
-  
+    const { title, url, description, rating} = req.body;
+    // const db = req.app.get('db');
+
     if(!title) {
       logger.error('Title is required');
       return res  
@@ -30,7 +37,7 @@ bookmarkRouter
         .send('Invalid data');
     }
   
-    if(!desc) {
+    if(!description) {
       logger.error('Description is required');
       return res
         .status(400)
@@ -48,20 +55,19 @@ bookmarkRouter
     const id = uuid();
   
     const bookmark = {
-      id,
       title,
       url,
-      desc,
+      description,
       rating
     };
   
     bookmarks.push(bookmark);
-  
+    // BookmarkService.insertBookmark(db, )
     logger.info(`Bookmark with id ${id} created`);
   
     res
       .status(201)
-      .location(`http://localhost:8000/:user/bookmark/${id}`)
+      .location(`http://localhost:8000/bookmark/${id}`)
       .json(bookmark);
   });
 
@@ -69,18 +75,22 @@ bookmarkRouter
   .route('/:id')
   .get((req, res) => {
     const { id } = req.params;
-    const bookmark = bookmarks.find(bookmark => bookmark.id === id);
-  
-    if (!bookmark) {
-      logger.error(`Bookmark with id ${id} not found.`);
-      return res
-        .status(404)
-        .send('Bookmark not found');
-    }
-    res.json(bookmark);
+    const db = req.app.get('db');
+
+    BookmarkService.getBookmarkById(db, id)
+      .then(bookmark => {
+        if (!bookmark) {
+          logger.error(`Bookmark with id ${id} not found.`);
+          return res
+            .status(404)
+            .send('Bookmark not found');
+        }
+        res.json(bookmark);
+      });
   })
+
   .patch(bodyParser, (req, res) => {
-    const { title, url, desc, rating } = req.body;
+    const { title, url, description, rating } = req.body;
     const {id} = req.params;
   
     const bookmark = bookmarks.find(bookmark => bookmark.id === id);
@@ -91,8 +101,8 @@ bookmarkRouter
     if(url) {
       bookmark.url = url;
     } else
-    if (desc) {
-      bookmark.desc = desc;
+    if (description) {
+      bookmark.description = description;
     } else
     if (rating) {
       bookmark.rating = rating;
@@ -102,7 +112,7 @@ bookmarkRouter
   
     res
       .status(200)
-      .location(`http://localhost8000/:user/bookmark/${id}`)
+      .location(`http://localhost8000/bookmark/${id}`)
       .json(bookmark);
   
   })

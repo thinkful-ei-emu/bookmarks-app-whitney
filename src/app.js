@@ -20,7 +20,7 @@ app.use(helmet());
 app.use(validateBearerToken);
 
 // ========== ROUTER ==========
-app.use('/:user/bookmarks',bookmarkRouter);
+app.use('/bookmarks', bookmarkRouter);
 
 // ========== ERROR HANDLING ==========
 app.use(errorHandler);
