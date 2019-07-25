@@ -8,7 +8,7 @@ const db = knex({
   connection: DB_URL,
 });
 
-//sets db for global availability
+//sets db for global availability as the req.app.get('db') variable
 app.set('db', db);
 
 app.listen(PORT, () => {

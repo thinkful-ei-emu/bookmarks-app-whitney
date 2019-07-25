@@ -12,17 +12,21 @@ const { NODE_ENV } = require('./config');
 const app = express();
 
 // ========== MIDDLEWARE ==========
+// third party that applies to all paths
 app.use(morgan((NODE_ENV === 'production') ? 'common' : 'dev'));
 app.use(cors());
 app.use(helmet());
 
 // ========== AUTHENTICATION ==========
+// applies to all paths
 app.use(validateBearerToken);
 
 // ========== ROUTER ==========
+// applies to /bookmarks path
 app.use('/bookmarks', bookmarkRouter);
 
 // ========== ERROR HANDLING ==========
+// applies to all paths
 app.use(errorHandler);
 
 module.exports = app;
