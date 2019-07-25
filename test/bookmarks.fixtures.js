@@ -1,3 +1,4 @@
+/*eslint no-useless-escape: 0*/
 function makeBookmarksArray() {
   return [
     {
@@ -39,13 +40,13 @@ function makeMaliciousBookmark() {
   const expectedBookmark = {
     ...maliciousBookmark,
     title:'Can\'t catch me &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
-    content: 'Bad image <img src="https://url.to.file.which/does-not.exist">. But not <strong>all</strong> bad.'
-  }
+    description: 'Bad image <img src="https://url.to.file.which/does-not.exist">. But not <strong>all</strong> bad.'
+  };
 
   return {
     maliciousBookmark,
     expectedBookmark,
-  }
+  };
 }
 
 module.exports = {makeBookmarksArray, makeMaliciousBookmark};

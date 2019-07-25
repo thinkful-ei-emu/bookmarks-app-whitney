@@ -1,4 +1,5 @@
 const express = require('express');
+const xss = require('xss');
 
 const bookmarks = require('../store');
 const logger = require('../logger');
@@ -7,13 +8,22 @@ const BookmarkService = require('../bookmarks-service');
 const bookmarkRouter = express.Router();
 const bodyParser = express.json();
 
+const serializeBookmarks = bookmark => ({
+  id: bookmark.id,
+  title: xss(bookmark.title),
+  url: xss(bookmark.url),
+  description: xss(bookmark.description),
+  rating: bookmark.rating,
+  expand: bookmark.expand
+});
+
 bookmarkRouter
   .route('/')
   .get((req, res, next) => {
     const db = req.app.get('db');
     BookmarkService.getAllBookmarks(db)
       .then(bookmarks => {
-        res.json(bookmarks);
+        res.json(bookmarks.map(serializeBookmarks));
       })
       .catch(err => next(err));
   })
@@ -32,13 +42,12 @@ bookmarkRouter
 
     BookmarkService.insertBookmark(db, newBookmark)
       .then(bookmark => {
-        
         res
           .status(201)
-          .location(`/bookmarks/${bookmark.id}`)
-          .json(bookmark);
+          .location(`/api/bookmarks/${bookmark.id}`)
+          .json(serializeBookmarks(bookmark));
       })
-      .catch(next);
+      .catch(err => next(err));
     
   });
 
@@ -56,10 +65,32 @@ bookmarkRouter
             .status(404)
             .json({ error: { message: 'Bookmark not found'} });
         }
-        res.json(bookmark);
+        return res
+          .status(200)
+          .json(serializeBookmarks(res.bookmark));
       })
       .catch(err => next(err));
   })
+
+  .delete((req, res) => {
+    const { id } = req.params;
+    const bookmarkIndex = bookmarks.findIndex(bookmark => bookmark.id === id);
+    
+    if (bookmarkIndex === -1) {
+      logger.error(`List with id ${id} not found`);
+      return res
+        .status(404)
+        .send('Not found');
+    }
+    
+    bookmarks.splice(bookmarkIndex, 1);
+  
+    logger.info(`List with id ${id} deleted.`);
+  
+    res
+      .status(204)
+      .end();
+  });
 
 // .patch(bodyParser, (req, res) => {
 //   const { title, url, description, rating } = req.body;
@@ -88,25 +119,5 @@ bookmarkRouter
 //     .json(bookmark);
   
 // })
-
-  .delete((req, res) => {
-    const { id } = req.params;
-    const bookmarkIndex = bookmarks.findIndex(bookmark => bookmark.id === id);
-    
-    if (bookmarkIndex === -1) {
-      logger.error(`List with id ${id} not found`);
-      return res
-        .status(404)
-        .send('Not found');
-    }
-    
-    bookmarks.splice(bookmarkIndex, 1);
-  
-    logger.info(`List with id ${id} deleted.`);
-  
-    res
-      .status(204)
-      .end();
-  });
 
 module.exports = bookmarkRouter;

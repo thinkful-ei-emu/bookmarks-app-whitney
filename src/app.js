@@ -23,7 +23,7 @@ app.use(validateBearerToken);
 
 // ========== ROUTER ==========
 // applies to /bookmarks path
-app.use('/bookmarks', bookmarkRouter);
+app.use('/api/bookmarks', bookmarkRouter);
 
 // ========== ERROR HANDLING ==========
 // applies to all paths
