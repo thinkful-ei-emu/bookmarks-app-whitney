@@ -21,6 +21,11 @@ app.use(helmet());
 // applies to all paths
 app.use(validateBearerToken);
 
+// ========== APP TESTING ==========
+app.get('/', (req, res) => {
+  res.send('Hello, world!');
+});
+
 // ========== ROUTER ==========
 // applies to /bookmarks path
 app.use('/api/bookmarks', bookmarkRouter);

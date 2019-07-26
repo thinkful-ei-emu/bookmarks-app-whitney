@@ -1,7 +1,7 @@
 // Should contain methods for CRUD
 
 const BookmarkService = {
-  // ========== READ ==========
+  // ========== READ/GET ==========
 
   // Returns all bookmarks
   getAllBookmarks(db) {
@@ -17,7 +17,7 @@ const BookmarkService = {
       .first();
   },
 
-  // ========== CREATE ==========
+  // ========== CREATE/POST ==========
   insertBookmark(db, newBookmark) {
     return db('bookmarks')
       .insert(newBookmark)
@@ -27,7 +27,7 @@ const BookmarkService = {
       });
   },
 
-  // ========== UPDATE ==========
+  // ========== UPDATE/PATCH/PUT ==========
   updateBookmark(db, id, newData) {
     return db('bookmarks')
       .where('id', id)
