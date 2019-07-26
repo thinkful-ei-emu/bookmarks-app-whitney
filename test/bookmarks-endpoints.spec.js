@@ -318,6 +318,59 @@ describe('Bookmarks Endpoints', () => {
               .expect(expectedBookmark)
           );
       });
+
+      it('requires the bookmark ID to be supplied as a URL param', () => {
+        // if req.params = null, return 400 - need id
+        const updateBookmark = {
+          title: 'Testing Title',
+          url: 'http://testing-url',
+          description: 'Testing rocks!',
+          rating: 5,
+        };
+
+        return supertest(app)
+          .patch('/api/bookmarks')
+          .set('Authorization', 'Bearer' + process.env.API_TOKEN)
+          .send(updateBookmark)
+          .expect(400);
+      });
+
+      it('allows partial updates i.e. only supplying a new title will only update title', () => {
+        // if only title is supplied, res will include updated title and old info
+        const testId = 1;
+        const updateBookmark = {
+          title: 'Testing Title',
+        };
+
+        const expectedBookmark = {
+          ...testBookmarks[testId - 1],
+          ...updateBookmark
+        };
+
+        return supertest(app)
+          .patch(`/api/bookmarks/${testId}`)
+          .set('Authorization', 'Bearer' + process.env.API_TOKEN)
+          .send(updateBookmark)
+          .expect(204)
+          .then(() => 
+            supertest(app)
+              .get(`/api/bookmarks/${testId}`)
+              .set('Authorization', 'Bearer ' + process.env.API_TOKEN)
+              .expect(expectedBookmark)
+          );
+      });
+
+      it('responds with a 400 when no values are supplied for fields', () => {
+        // if no fields are supplied, return 400 - need at least 1 new field
+        const testId = 2;
+        const updateBookmark = {};
+
+        return supertest(app)
+          .patch(`/api/bookmarks/${testId}`)
+          .set('Authorization', 'Bearer' + process.env.API_TOKEN)
+          .send(updateBookmark)
+          .expect(400, {error: {message: 'Request body must contain either title, url, description or rating'}});
+      });
     });
   });
 });
